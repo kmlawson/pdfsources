@@ -38,10 +38,10 @@ def temp_json_files(sample_citations, tmp_path):
     json_file_1 = tmp_path / "test_citations.json"
     json_file_2 = tmp_path / "test_citations_2.json"
     
-    with open(json_file_1, 'w') as f:
+    with open(json_file_1, 'w', encoding='utf-8') as f:
         json.dump(sample_citations, f)
     
-    with open(json_file_2, 'w') as f:
+    with open(json_file_2, 'w', encoding='utf-8') as f:
         json.dump([sample_citations[0]], f)
     
     return str(json_file_1), str(json_file_2)
@@ -149,7 +149,7 @@ class TestErrorHandling:
     def test_corrupt_json_file(self, tmp_path):
         """Test handling of corrupt JSON files."""
         corrupt_file = tmp_path / "corrupt.json"
-        with open(corrupt_file, 'w') as f:
+        with open(corrupt_file, 'w', encoding='utf-8') as f:
             f.write("{ invalid json }")
         
         # Should handle JSON errors gracefully
@@ -162,7 +162,7 @@ class TestErrorHandling:
     def test_empty_json_file(self, tmp_path):
         """Test handling of empty JSON files."""
         empty_file = tmp_path / "empty.json"
-        with open(empty_file, 'w') as f:
+        with open(empty_file, 'w', encoding='utf-8') as f:
             json.dump([], f)
         
         output_file = tmp_path / "output.md"
@@ -207,7 +207,7 @@ class TestErrorHandling:
         ]
         
         malformed_file = tmp_path / "malformed.json"
-        with open(malformed_file, 'w') as f:
+        with open(malformed_file, 'w', encoding='utf-8') as f:
             json.dump(malformed_data, f)
         
         output_file = tmp_path / "output.md"

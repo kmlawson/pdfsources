@@ -28,7 +28,7 @@ def temp_workspace(tmp_path):
     
     # Create JSON file
     json_file = tmp_path / "test_citations.json"
-    with open(json_file, 'w') as f:
+    with open(json_file, 'w', encoding='utf-8') as f:
         json.dump(sample_data, f)
     
     return tmp_path, str(json_file)
@@ -209,7 +209,7 @@ class TestCLIIntegration:
     def test_cli_corrupt_json_file(self, tmp_path):
         """Test CLI with corrupt JSON file."""
         corrupt_file = tmp_path / "corrupt.json"
-        with open(corrupt_file, 'w') as f:
+        with open(corrupt_file, 'w', encoding='utf-8') as f:
             f.write("{ invalid json }")
         
         result = subprocess.run(
@@ -227,7 +227,7 @@ class TestCLIIntegration:
     def test_cli_empty_json_file(self, tmp_path):
         """Test CLI with empty JSON file."""
         empty_file = tmp_path / "empty.json"
-        with open(empty_file, 'w') as f:
+        with open(empty_file, 'w', encoding='utf-8') as f:
             f.write("[]")
         
         output_file = tmp_path / "empty_output.md"

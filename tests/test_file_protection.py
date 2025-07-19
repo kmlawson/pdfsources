@@ -22,7 +22,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to confirm overwrite
@@ -35,7 +35,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to confirm overwrite
@@ -48,7 +48,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to decline overwrite
@@ -62,7 +62,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input as empty (default decline)
@@ -80,7 +80,7 @@ class TestFileOverwriteProtection:
             file_2 = os.path.join(temp_dir, "existing_2.md")
             
             for file_path in [base_file, file_1, file_2]:
-                with open(file_path, 'w') as f:
+                with open(file_path, 'w', encoding='utf-8') as f:
                     f.write("existing content")
             
             # Mock user input to decline overwrite
@@ -94,7 +94,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to raise KeyboardInterrupt
@@ -108,7 +108,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to raise EOFError
@@ -122,7 +122,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file with complex name
             test_file = os.path.join(temp_dir, "my.complex.filename.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to decline overwrite
@@ -136,7 +136,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file without extension
             test_file = os.path.join(temp_dir, "filename_no_ext")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to decline overwrite
@@ -151,7 +151,7 @@ class TestFileOverwriteProtection:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create existing file
             test_file = os.path.join(temp_dir, "existing.md")
-            with open(test_file, 'w') as f:
+            with open(test_file, 'w', encoding='utf-8') as f:
                 f.write("existing content")
             
             # Mock user input to decline overwrite

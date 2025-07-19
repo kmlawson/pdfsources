@@ -10,14 +10,14 @@ def combine_anystyle_output():
         if filename.endswith(".json"):
             filepath = os.path.join(raw_output_dir, filename)
             if os.path.getsize(filepath) > 0:
-                with open(filepath, 'r') as f:
+                with open(filepath, 'r', encoding='utf-8') as f:
                     try:
                         data = json.load(f)
                         all_refs.extend(data)
                     except json.JSONDecodeError:
                         print(f"Warning: Could not decode JSON from {filepath}")
             
-    with open(combined_output_file, 'w') as f:
+    with open(combined_output_file, 'w', encoding='utf-8') as f:
         json.dump(all_refs, f, indent=2)
 
 if __name__ == "__main__":

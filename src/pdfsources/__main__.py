@@ -67,7 +67,7 @@ def load_config():
     }
     if os.path.exists(config_path):
         try:
-            with open(config_path, "r") as f:
+            with open(config_path, "r", encoding='utf-8') as f:
                 config = toml.load(f)
             # Merge with defaults to ensure all keys are present
             for key, value in default_config.items():
@@ -83,7 +83,7 @@ def load_config():
             return default_config
     else:
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding='utf-8') as f:
             toml.dump(default_config, f)
         return default_config
 
@@ -144,7 +144,7 @@ def process_pdfs_with_anystyle(pdf_files, output_dir="info"):
             
             if result.returncode == 0 and result.stdout.strip():
                 # Write JSON output
-                with open(safe_json_output, 'w') as f:
+                with open(safe_json_output, 'w', encoding='utf-8') as f:
                     f.write(result.stdout)
                 json_files.append(safe_json_output)
                 logger.debug(f"Successfully processed {pdf_file}")
@@ -437,13 +437,13 @@ def process_files(json_files, output_file, individual_files=False, style='chicag
     }
     formatter = formatters.get(style, format_chicago)
 
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         if output_type == 'divided':
             f.write(f"# Bibliography ({style.capitalize()})\n\n")
             all_refs = []
             for file_name in json_files:
                 if os.path.getsize(file_name) > 0:
-                    with open(file_name, 'r') as json_file:
+                    with open(file_name, 'r', encoding='utf-8') as json_file:
                         try:
                             data = json.load(json_file)
                             if isinstance(data, list):
@@ -475,7 +475,7 @@ def process_files(json_files, output_file, individual_files=False, style='chicag
             all_refs = []
             for file_name in json_files:
                 if os.path.getsize(file_name) > 0:
-                    with open(file_name, 'r') as json_file:
+                    with open(file_name, 'r', encoding='utf-8') as json_file:
                         try:
                             data = json.load(json_file)
                             if isinstance(data, list):
@@ -505,7 +505,7 @@ def process_files(json_files, output_file, individual_files=False, style='chicag
             for file_name in json_files:
                 source_name = os.path.basename(file_name).replace('.json', '').replace('_', ' ').title()
                 if os.path.getsize(file_name) > 0:
-                    with open(file_name, 'r') as json_file:
+                    with open(file_name, 'r', encoding='utf-8') as json_file:
                         try:
                             refs = json.load(json_file)
                             logger.debug(f"Processing {len(refs)} references for {file_name}.")
@@ -536,7 +536,7 @@ def process_files(json_files, output_file, individual_files=False, style='chicag
             for file_name in json_files:
                 source_name = os.path.basename(file_name).replace('.json', '').replace('_', ' ').title()
                 if os.path.getsize(file_name) > 0:
-                    with open(file_name, 'r') as json_file:
+                    with open(file_name, 'r', encoding='utf-8') as json_file:
                         try:
                             refs = json.load(json_file)
                             logger.debug(f"Processing {len(refs)} references for {file_name}.")
