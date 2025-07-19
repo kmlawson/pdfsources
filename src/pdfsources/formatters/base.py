@@ -16,6 +16,7 @@ def clean_extracted_text(text):
     
     # Fix common escaped characters from anystyle
     text = text.replace('\\(', '(').replace('\\)', ')')
+    text = text.replace('\\[', '[').replace('\\]', ']')
     text = text.replace('\\"', '"').replace("\\'", "'")
     text = text.replace('\\{', '{').replace('\\}', '}')
     

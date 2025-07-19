@@ -22,6 +22,12 @@ class TestDataCleaning:
         cleaned = clean_extracted_text(dirty_text)
         assert cleaned == 'Title with (parentheses) and "quotes".'
     
+    def test_clean_extracted_text_fixes_escaped_brackets(self):
+        """Test fixing of escaped brackets from anystyle."""
+        dirty_text = "Title with \\[brackets\\] and data."
+        cleaned = clean_extracted_text(dirty_text)
+        assert cleaned == "Title with [brackets] and data."
+    
     def test_clean_extracted_text_removes_html_entities(self):
         """Test removal of HTML entities."""
         dirty_text = "Title with &lt;brackets&gt; and &amp; symbols."

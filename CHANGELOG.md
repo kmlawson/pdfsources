@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2025-07-19
+
+### Added
+- Comprehensive PDF failure diagnostics system that checks file integrity, PDF format validity, and dependency availability
+- Enhanced bracket escaping support for `\\[` → `[` and `\\]` → `]` in citation text
+
+### Improved
+- Cleaner console output by removing "INFO: " prefixes from user-facing messages
+- More detailed error reporting for failed PDF processing with specific diagnostic information
+- Better user experience with actionable error messages for common PDF processing issues
+
+### Fixed
+- Enhanced text cleaning to properly handle escaped brackets from anystyle extraction
+- Improved error handling and user feedback for PDF processing failures
+
 ## [0.1.1] - 2025-07-19
 
 ### Added

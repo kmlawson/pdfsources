@@ -80,7 +80,7 @@ def main():
     # If no specific output type specified, generate all types
     if not output_types:
         output_types = ['divided', 'combined', 'sources', 'sources_divided']
-        logger.info("No specific output type specified. Generating all bibliography formats...")
+        print("No specific output type specified. Generating all bibliography formats...")
     
     # Generate bibliographies
     force_overwrite = args.force or args.overwrite
@@ -90,25 +90,25 @@ def main():
             output_file = args.output if args.output and len(output_types) == 1 else "bibliography_divided.md"
             safe_output_file = get_safe_output_filename(output_file, force_overwrite, args.no_interaction)
             writer.write_divided_bibliography(safe_output_file, input_files)
-            logger.info(f"Generated {safe_output_file}")
+            print(f"Generated {safe_output_file}")
             
         elif output_type == 'combined':
             output_file = args.output if args.output and len(output_types) == 1 else "bibliography_combined.md"
             safe_output_file = get_safe_output_filename(output_file, force_overwrite, args.no_interaction)
             writer.write_combined_bibliography(safe_output_file, input_files)
-            logger.info(f"Generated {safe_output_file}")
+            print(f"Generated {safe_output_file}")
             
         elif output_type == 'sources':
             output_file = args.output if args.output and len(output_types) == 1 else "bibliography_sources.md"
             safe_output_file = get_safe_output_filename(output_file, force_overwrite, args.no_interaction)
             writer.write_sources_bibliography(safe_output_file, input_files)
-            logger.info(f"Generated {safe_output_file}")
+            print(f"Generated {safe_output_file}")
             
         elif output_type == 'sources_divided':
             output_file = args.output if args.output and len(output_types) == 1 else "bibliography_sources_divided.md"
             safe_output_file = get_safe_output_filename(output_file, force_overwrite, args.no_interaction)
             writer.write_sources_divided_bibliography(safe_output_file, input_files)
-            logger.info(f"Generated {safe_output_file}")
+            print(f"Generated {safe_output_file}")
     
     return 0
 

@@ -80,9 +80,9 @@ class BibliographyWriter:
                 logger.warning(f"Error reading {file_name}: {e}")
         
         if deduplicate and duplicate_count > 0:
-            logger.info(f"Removed {duplicate_count} duplicate citations")
+            print(f"Removed {duplicate_count} duplicate citations")
         
-        logger.info(f"Loaded {len(all_citations)} valid citations from {len(json_files)} files")
+        print(f"Loaded {len(all_citations)} valid citations from {len(json_files)} files")
         return all_citations
     
     def write_divided_bibliography(self, output_file: str, json_files: List[str]):
