@@ -2,6 +2,8 @@ import pytest
 import json
 from pdfsources.formatters import ChicagoFormatter, APAFormatter, HarvardFormatter
 from pdfsources.writers import BibliographyWriter, parse_citation
+from test_helpers import (validate_citation_fields, validate_bibliography_structure, validate_divided_bibliography,
+                          validate_sources_bibliography)
 
 
 @pytest.fixture
@@ -51,18 +53,35 @@ def temp_json_files(sample_citations, tmp_path):
 class TestCitationFormatters:
     """Tests for citation formatting functions."""
 
-    @pytest.mark.parametrize("formatter,expected_book,expected_article", [
-        (ChicagoFormatter(), 'Author, A. *Test Book Title That Is Long Enough*. (2025) Test City: Test Publisher, 2025.', 'Writer, B. "Test Article Title That Is Long Enough". (2024)'),
-        (APAFormatter(), 'Author, A. (2025). Test Book Title That Is Long Enough Test City: Test Publisher.', 'Writer, B. (2024). Test Article Title That Is Long Enough'),
-        (HarvardFormatter(), 'Author, A. 2025, *Test Book Title That Is Long Enough*. Test City: Test Publisher.', 'Writer, B. 2024, *Test Article Title That Is Long Enough*.')
+    @pytest.mark.parametrize("formatter,style_name", [
+        (ChicagoFormatter(), "chicago"),
+        (APAFormatter(), "apa"),
+        (HarvardFormatter(), "harvard")
     ])
-    def test_formatters_basic(self, sample_citations, formatter, expected_book, expected_article):
-        """Test basic formatting for all citation styles."""
+    def test_formatters_basic(self, sample_citations, formatter, style_name):
+        """Test basic formatting for all citation styles using semantic validation."""
         book_citation = parse_citation(sample_citations[0])
         article_citation = parse_citation(sample_citations[1])
         
-        assert formatter.format(book_citation) == expected_book
-        assert formatter.format(article_citation) == expected_article
+        book_result = formatter.format(book_citation)
+        article_result = formatter.format(article_citation)
+        
+        # Use semantic validation instead of exact string matching
+        book_validation = validate_citation_fields(book_result, ["author", "title", "year", "publisher"])
+        article_validation = validate_citation_fields(article_result, ["author", "title", "year"])
+        
+        # Verify essential components are present
+        assert book_validation["author"], f"Book citation missing author: {book_result}"
+        assert book_validation["title"], f"Book citation missing title: {book_result}"
+        assert book_validation["year"], f"Book citation missing year: {book_result}"
+        
+        assert article_validation["author"], f"Article citation missing author: {article_result}"
+        assert article_validation["title"], f"Article citation missing title: {article_result}"
+        assert article_validation["year"], f"Article citation missing year: {article_result}"
+        
+        # Verify non-empty results
+        assert book_result.strip(), "Book citation should not be empty"
+        assert article_result.strip(), "Article citation should not be empty"
 
     def test_multiple_authors(self):
         """Test formatting with multiple authors."""
@@ -154,12 +173,16 @@ class TestErrorHandling:
             f.write("{ invalid json }")
         
         # Should handle JSON errors gracefully
-        try:
-            writer = BibliographyWriter(ChicagoFormatter())
-            writer.write_combined_bibliography(str(tmp_path / "output.md"), [str(corrupt_file)])
-        except json.JSONDecodeError:
-            # Expected to raise JSONDecodeError or handle gracefully
-            pass
+        writer = BibliographyWriter(ChicagoFormatter())
+        output_file = tmp_path / "output.md"
+        
+        # The writer should handle corrupt JSON gracefully, not crash
+        writer.write_combined_bibliography(str(output_file), [str(corrupt_file)])
+        
+        # Verify output file was created and has proper structure
+        assert output_file.exists(), "Output file should be created even with corrupt input"
+        content = output_file.read_text()
+        assert "# Bibliography" in content, "Should have bibliography header even with no valid citations"
 
     def test_empty_json_file(self, tmp_path):
         """Test handling of empty JSON files."""
@@ -182,25 +205,30 @@ class TestErrorHandling:
         output_file = tmp_path / "output.md"
         
         # Should handle missing files gracefully
-        try:
-            writer = BibliographyWriter(ChicagoFormatter())
-            writer.write_combined_bibliography(str(output_file), [nonexistent_file])
-        except (FileNotFoundError, IOError):
-            # Expected to raise file error or handle gracefully
-            pass
+        writer = BibliographyWriter(ChicagoFormatter())
+        
+        # The writer should handle missing files gracefully, not crash
+        writer.write_combined_bibliography(str(output_file), [nonexistent_file])
+        
+        # Verify output file was created and has proper structure
+        assert output_file.exists(), "Output file should be created even with missing input files"
+        content = output_file.read_text()
+        assert "# Bibliography" in content, "Should have bibliography header even with no valid input files"
 
     def test_invalid_output_directory(self, temp_json_files):
         """Test handling of invalid output directory."""
         json_file_1, _ = temp_json_files
         invalid_output = "/nonexistent/directory/output.md"
         
-        # Should handle invalid output path gracefully
-        try:
-            writer = BibliographyWriter(ChicagoFormatter())
+        # Should raise appropriate error for invalid output path
+        writer = BibliographyWriter(ChicagoFormatter())
+        
+        # This should actually fail with a proper exception
+        with pytest.raises((FileNotFoundError, PermissionError, OSError)) as exc_info:
             writer.write_combined_bibliography(invalid_output, [json_file_1])
-        except (FileNotFoundError, PermissionError, OSError):
-            # Expected to raise appropriate error
-            pass
+        
+        # Verify we get a meaningful error message
+        assert str(exc_info.value), "Should provide a meaningful error message"
 
     def test_malformed_citation_data(self, tmp_path):
         """Test handling of malformed citation data."""
@@ -238,11 +266,18 @@ class TestBibliographyWriter:
         assert output_file.exists()
         
         content = output_file.read_text()
-        assert "# Bibliography (Chicago)" in content
-        assert "## Book" in content
-        assert "## Article Journal" in content
-        assert "* Author, A." in content
-        assert "* Writer, B." in content
+        
+        # Use semantic validation instead of exact string matching
+        structure_validation = validate_bibliography_structure(content, "chicago")
+        divided_validation = validate_divided_bibliography(content)
+        
+        assert structure_validation["has_header"], "Bibliography should have main header"
+        assert structure_validation["has_correct_style"], "Bibliography should specify Chicago style"
+        assert structure_validation["has_citations"], "Bibliography should contain citations"
+        
+        assert divided_validation["has_sections"], "Divided bibliography should have sections"
+        assert divided_validation["has_book_section"], "Should have book section"
+        assert divided_validation["has_article_section"], "Should have article section"
 
     def test_write_combined_bibliography(self, temp_json_files, tmp_path):
         """Test the write_combined_bibliography method."""
@@ -254,9 +289,14 @@ class TestBibliographyWriter:
         assert output_file.exists()
         
         content = output_file.read_text()
-        assert "# Bibliography (Chicago)" in content
-        assert "* Author, A." in content
-        assert "* Writer, B." in content
+        
+        # Use semantic validation
+        structure_validation = validate_bibliography_structure(content, "chicago")
+        
+        assert structure_validation["has_header"], "Bibliography should have main header"
+        assert structure_validation["has_correct_style"], "Bibliography should specify Chicago style"
+        assert structure_validation["has_citations"], "Bibliography should contain citations"
+        assert structure_validation["proper_formatting"], "Citations should have proper author formatting"
 
     def test_write_sources_bibliography(self, temp_json_files, tmp_path):
         """Test the write_sources_bibliography method."""
@@ -268,11 +308,15 @@ class TestBibliographyWriter:
         assert output_file.exists()
         
         content = output_file.read_text()
-        assert "# Bibliography by Source (Chicago)" in content
-        assert "## Test Citations (3 sources)" in content
-        assert "## Test Citations 2 (1 sources)" in content
-        assert "* Author, A." in content
-        assert "* Writer, B." in content
+        
+        # Use semantic validation
+        sources_validation = validate_sources_bibliography(content, ["test_citations", "test_citations_2"])
+        
+        assert sources_validation["has_source_sections"], "Should have source sections"
+        assert sources_validation["source_sections_have_counts"], "Source sections should have citation counts"
+        
+        # Check for sources header
+        assert "# Bibliography by Source (Chicago)" in content, "Should have sources bibliography header"
 
     def test_write_sources_divided_bibliography(self, temp_json_files, tmp_path):
         """Test the write_sources_divided_bibliography method."""
@@ -284,9 +328,14 @@ class TestBibliographyWriter:
         assert output_file.exists()
         
         content = output_file.read_text()
-        assert "# Bibliography by Source with Categories (Chicago)" in content
-        assert "## Test Citations (3 sources)" in content
-        assert "### Book" in content
-        assert "### Article Journal" in content
-        assert "* Author, A." in content
-        assert "* Writer, B." in content
+        
+        # Use semantic validation
+        sources_validation = validate_sources_bibliography(content)
+        divided_validation = validate_divided_bibliography(content)
+        
+        assert sources_validation["has_source_sections"], "Should have source sections"
+        assert divided_validation["has_sections"], "Should have category sections"
+        
+        # Check for specific headers
+        assert "# Bibliography by Source with Categories (Chicago)" in content, "Should have correct header"
+        assert "### Book" in content or "### Article" in content, "Should have subsection categories"

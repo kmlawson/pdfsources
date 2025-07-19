@@ -1,6 +1,8 @@
 """Main application logic for pdfsources."""
 
 import logging
+import os
+import sys
 from .cli import create_parser, configure_logging
 from .config import load_config
 from .discovery import find_pdfs_in_directory, get_safe_output_filename
@@ -39,8 +41,13 @@ def main():
     
     # Determine input files
     if args.input_files:
-        # Use provided JSON files directly
-        input_files = args.input_files
+        # Validate that provided JSON files exist
+        input_files = []
+        for file_path in args.input_files:
+            if not os.path.exists(file_path):
+                logger.error(f"Input file not found: {file_path}")
+                return 1
+            input_files.append(file_path)
         logger.info(f"Processing {len(input_files)} provided JSON files...")
     else:
         # Scan for PDFs and extract citations
@@ -50,14 +57,14 @@ def main():
         if not pdf_files:
             logger.error("No PDF files found in 'pdfs/' directory")
             logger.info("Please add PDF files to the 'pdfs/' directory or specify JSON files directly")
-            return
+            return 1
         
         logger.info(f"Found {len(pdf_files)} PDF files")
         input_files = extract_citations_from_pdfs(pdf_files)
         
         if not input_files:
             logger.error("Failed to extract citations from PDF files")
-            return
+            return 1
     
     # Determine output types to generate
     output_types = []
@@ -102,7 +109,9 @@ def main():
             safe_output_file = get_safe_output_filename(output_file, force_overwrite, args.no_interaction)
             writer.write_sources_divided_bibliography(safe_output_file, input_files)
             logger.info(f"Generated {safe_output_file}")
+    
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
