@@ -123,7 +123,7 @@ class TestCitationFormatters:
         assert apa_result != ""
 
     def test_no_author(self):
-        """Test formatting with no author."""
+        """Test that citations without authors are filtered out."""
         no_author_citation = {
             "title": ["Anonymous Work Title That Is Long Enough"],
             "date": ["2023"],
@@ -132,8 +132,11 @@ class TestCitationFormatters:
         }
         citation = parse_citation(no_author_citation)
         
+        # Should now be invalid due to enhanced filtering
+        assert not citation.has_valid_content()
+        
         chicago_result = ChicagoFormatter().format(citation)
-        assert "Anonymous Work Title That Is Long Enough" in chicago_result
+        assert chicago_result == ""  # Empty because invalid
         
     def test_editors_instead_of_authors(self):
         """Test formatting with editors instead of authors."""

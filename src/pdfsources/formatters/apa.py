@@ -34,17 +34,16 @@ class APAFormatter(BaseFormatter):
             return ""
         entry_parts.append(escape_markdown(citation.title))
 
+        # Handle journal articles
         if citation.container_title:
-            entry_parts.append(f"*{escape_markdown(citation.container_title)}*")
-
-        if citation.volume:
-            entry_parts.append(f", *{citation.volume}*")
-
-        if citation.issue:
-            entry_parts.append(f"({citation.issue})")
-
-        if citation.pages:
-            entry_parts.append(f", {citation.pages}.")
+            container_part = f"*{escape_markdown(citation.container_title)}*"
+            if citation.volume:
+                container_part += f", *{citation.volume}*"
+            if citation.issue:
+                container_part += f"({citation.issue})"
+            if citation.pages:
+                container_part += f", {citation.pages}"
+            entry_parts.append(container_part + ".")
 
         if citation.publisher:
             if citation.location:

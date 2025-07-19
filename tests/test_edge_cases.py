@@ -235,7 +235,9 @@ class TestLargeDatasets:
         result = formatter.format(citation)
         
         assert result, "Should handle very long fields"
-        assert long_author in result, "Should preserve long author name"
+        # Author name will be normalized to title case (first letter capital, rest lowercase)
+        normalized_author = "B" + "b" * 499  # Normalized version
+        assert normalized_author in result, "Should preserve long author name (normalized)"
         assert long_title in result, "Should preserve long title"
         
         # Verify markdown safety

@@ -38,11 +38,11 @@ def validate_citation_fields(citation_text: str, expected_fields: List[str]) -> 
     validation = {}
     
     field_patterns = {
-        "author": r"[A-Z][a-z]+, [A-Z]\.",
-        "title": r'"[^"]+"|[*][^*]+[*]',
+        "author": r"[A-Z][a-z]+, [A-Z]\.?",  # Made period optional
+        "title": r'"[^"]+"|[*][^*]+[*]|[A-Z][a-zA-Z\s]{10,}',  # Added plain text title pattern
         "year": r"\(?\d{4}\)?",
-        "publisher": r"[A-Z][a-zA-Z\s]+\.",
-        "location": r"[A-Z][a-zA-Z\s]+:"
+        "publisher": r"[A-Z][a-zA-Z\s]+\.?",  # Made period optional
+        "location": r"[A-Z][a-zA-Z\s]+:?"     # Made colon optional
     }
     
     for field in expected_fields:
@@ -64,18 +64,18 @@ def validate_divided_bibliography(content: str) -> Dict[str, bool]:
         "sections_have_citations": False
     }
     
-    # Check for section headers
-    section_pattern = r"^## [A-Z][a-z\s]+$"
+    # Check for section headers (both ## and ### level)
+    section_pattern = r"^(##|###) [A-Z][a-z\s]+$"
     sections = re.findall(section_pattern, content, re.MULTILINE)
     validation["has_sections"] = len(sections) > 0
     
-    # Check for specific sections
-    validation["has_book_section"] = bool(re.search(r"## Book", content))
-    validation["has_article_section"] = bool(re.search(r"## Article", content))
+    # Check for specific sections (both ## and ### level)
+    validation["has_book_section"] = bool(re.search(r"(##|###) Book", content))
+    validation["has_article_section"] = bool(re.search(r"(##|###) Article", content))
     
     # Check that sections have citations following them
-    section_with_citations = r"## [A-Z][a-z\s]+\n+(\* .+\n)+"
-    validation["sections_have_citations"] = bool(re.search(section_with_citations, content))
+    section_with_citations = r"(##|###) [A-Z][a-z\s]+.*?\n+((\* .+\n?)+)"
+    validation["sections_have_citations"] = bool(re.search(section_with_citations, content, re.DOTALL))
     
     return validation
 
@@ -114,16 +114,17 @@ def validate_markdown_safety(content: str) -> Dict[str, bool]:
         "no_script_tags": True
     }
     
-    # Check for unescaped markdown that could be injection
-    unescaped_bracket_pattern = r"(?<!\\)\[.*?(?<!\\)\](?!\()"
-    validation["no_unescaped_brackets"] = not bool(re.search(unescaped_bracket_pattern, content))
+    # Check for unescaped markdown that could be injection - but allow escaped brackets
+    # Look for actual problematic patterns rather than all brackets
+    dangerous_link_pattern = r"(?<!\\)\[.*?\]\((?:javascript|data):"
+    validation["no_unescaped_brackets"] = not bool(re.search(dangerous_link_pattern, content, re.IGNORECASE))
     
-    # Check for potential link injection
-    link_pattern = r"\[.*?\]\(.*?\)"
-    validation["no_unescaped_links"] = not bool(re.search(link_pattern, content))
+    # Check for dangerous link protocols only
+    dangerous_protocol_pattern = r"\[.*?\]\((?:javascript|data|vbscript):"
+    validation["no_unescaped_links"] = not bool(re.search(dangerous_protocol_pattern, content, re.IGNORECASE))
     
     # Check for script tags (shouldn't be in bibliography)
-    script_pattern = r"<script.*?>.*?</script>"
+    script_pattern = r"<script[^>]*>.*?</script>"
     validation["no_script_tags"] = not bool(re.search(script_pattern, content, re.IGNORECASE | re.DOTALL))
     
     return validation

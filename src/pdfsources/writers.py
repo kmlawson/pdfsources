@@ -4,17 +4,42 @@ import json
 import logging
 import os
 from collections import defaultdict
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 from .models import Citation
 from .formatters.base import BaseFormatter
 
 logger = logging.getLogger(__name__)
 
 
+def get_citation_signature(citation: Citation) -> str:
+    """Generate a normalized signature for duplicate detection."""
+    # Simplified title: lowercase, alphanumeric only
+    title_part = ''.join(c for c in str(citation.title or '').lower() if c.isalnum())
+    
+    # Simplified authors: first two authors' last names
+    author_part = ''
+    if citation.author:
+        author_names = []
+        for author in citation.author[:2]:  # Take first two authors
+            if hasattr(author, 'family') and author.family:
+                author_names.append(''.join(c for c in author.family.lower() if c.isalnum()))
+        author_part = ''.join(sorted(author_names))
+    
+    # Include publication year if available
+    year_part = ''.join(c for c in str(citation.date or '') if c.isdigit())[:4]  # First 4 digits
+    
+    return f"{title_part}{author_part}{year_part}"
+
+
 def parse_citation(citation_data: Dict[str, Any]) -> Citation:
     """Parse citation data into a Citation object."""
     try:
-        return Citation(**citation_data)
+        # Convert anystyle field names to our field names
+        normalized_data = dict(citation_data)
+        if 'container-title' in normalized_data:
+            normalized_data['container_title'] = normalized_data.pop('container-title')
+        
+        return Citation(**normalized_data)
     except Exception as e:
         logger.warning(f"Failed to parse citation: {e}")
         return Citation()
@@ -26,9 +51,11 @@ class BibliographyWriter:
     def __init__(self, formatter: BaseFormatter):
         self.formatter = formatter
     
-    def load_citations_from_files(self, json_files: List[str]) -> List[Citation]:
-        """Load and parse citations from JSON files."""
+    def load_citations_from_files(self, json_files: List[str], deduplicate: bool = True) -> List[Citation]:
+        """Load and parse citations from JSON files with optional deduplication."""
         all_citations = []
+        seen_signatures: Set[str] = set()
+        duplicate_count = 0
         
         for file_name in json_files:
             try:
@@ -38,11 +65,22 @@ class BibliographyWriter:
                         for item in data:
                             citation = parse_citation(item)
                             if citation.has_valid_content():
-                                all_citations.append(citation)
+                                if deduplicate:
+                                    signature = get_citation_signature(citation)
+                                    if signature and signature not in seen_signatures:
+                                        seen_signatures.add(signature)
+                                        all_citations.append(citation)
+                                    else:
+                                        duplicate_count += 1
+                                else:
+                                    all_citations.append(citation)
                     else:
                         logger.warning(f"Expected list in {file_name}, got {type(data)}")
             except (json.JSONDecodeError, FileNotFoundError) as e:
                 logger.warning(f"Error reading {file_name}: {e}")
+        
+        if deduplicate and duplicate_count > 0:
+            logger.info(f"Removed {duplicate_count} duplicate citations")
         
         logger.info(f"Loaded {len(all_citations)} valid citations from {len(json_files)} files")
         return all_citations

@@ -72,14 +72,17 @@ class TestCitation:
         )
         assert article_citation.get_inferred_type() == CitationType.ARTICLE_JOURNAL
         
-        # Generic citation
-        generic_citation = Citation(title="Test")
-        assert generic_citation.get_inferred_type() == CitationType.GENERIC
+        # Other citation
+        other_citation = Citation(title="Test")
+        assert other_citation.get_inferred_type() == CitationType.OTHER
     
     def test_citation_validity(self):
         """Test citation validity checking."""
-        # Valid citation
-        valid_citation = Citation(title="This is a valid title with enough content")
+        # Valid citation (now requires author or editor)
+        valid_citation = Citation(
+            title="This is a valid title with enough content",
+            author=[Person(family="Test", given="Author")]
+        )
         assert valid_citation.has_valid_content() is True
         
         # Invalid citations

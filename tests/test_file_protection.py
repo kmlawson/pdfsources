@@ -145,7 +145,7 @@ class TestFileOverwriteProtection:
                 expected = os.path.join(temp_dir, "filename_no_ext_1")
                 assert result == expected
     
-    @patch('pdfsources.__main__.logger')
+    @patch('pdfsources.discovery.logger')
     def test_logging_alternative_filename(self, mock_logger):
         """Test that alternative filename is logged."""
         with tempfile.TemporaryDirectory() as temp_dir:
