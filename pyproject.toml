@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdfsources"
+version = "0.1.0"
+authors = [
+  { name="K.M. Lawson", email="kmlawson@example.com" },
+]
+description = "A tool for extracting and processing citations from PDF files."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9", 
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Topic :: Text Processing",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+keywords = ["citations", "bibliography", "PDF", "academic", "references"]
+dependencies = [
+    "toml",
+    "platformdirs",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/kmlawson/pdfsources"
+"Bug Reports" = "https://github.com/kmlawson/pdfsources/issues"
+"Source" = "https://github.com/kmlawson/pdfsources"
+
+[project.scripts]
+pdfsources = "pdfsources.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["pdfsources"]
+

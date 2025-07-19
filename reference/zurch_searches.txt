@@ -1,0 +1,19 @@
+# Zurch Search Commands
+
+# Search for items with "Japan" in the title, with attachments, limit 500, and show IDs
+zurch -n Japan -o -x 500 --showids
+
+# Search for items with "spatial" in the title, with attachments, limit 500, and show IDs
+zurch -n spatial -o -x 500 --showids
+
+# Search for items by a specific author, with attachments, and show IDs
+zurch -a "Edward Said" -o --showids
+
+# Search for items with a specific tag, with attachments, limit 100, and show IDs
+zurch -t "postcolonialism" -o -x 100 --showids
+
+# Search for articles in the "P: Korea" folder, with attachments, limit 50, and show IDs
+zurch -f "P: Korea" --articles -o -x 50 --showids
+
+# Get all books with attachments, limit 100, and show IDs
+zurch --books -o -x 100 --showids

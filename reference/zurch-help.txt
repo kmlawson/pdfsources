@@ -1,0 +1,72 @@
+usage: zurch [-h] [-v] [-d] [-x MAX_RESULTS] [-i] [--nointeract] [-p]
+             [-f FOLDER [FOLDER ...]] [-n NAME [NAME ...]] [-l [LIST]]
+             [-a AUTHOR [AUTHOR ...]] [-t TAG [TAG ...]] [--shownotes]
+             [--withnotes] [-k] [-o] [--after AFTER] [--before BEFORE]
+             [--books] [--articles] [--no-dedupe] [--id ID]
+             [--getbyid GETBYID [GETBYID ...]] [--getnotes GETNOTES]
+             [--showids] [--showtags] [--stats] [--export {csv,json}]
+             [--file FILE] [--showyear] [--showauthor] [--showcreated]
+             [--showmodified] [--showcollections]
+             [--sort {t,title,d,date,a,author,c,created,m,modified}]
+             [--config]
+
+Zurch - Zotero Search CLI
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  -d, --debug           Enable debug mode with detailed logging
+  -x, --max-results MAX_RESULTS
+                        Maximum number of results to return (default: 100, use
+                        'all' or '0' for unlimited)
+  -i, --interactive     Enable interactive mode (default: enabled, append 'g'
+                        to item number to grab attachment)
+  --nointeract          Disable interactive mode (return to simple list
+                        output)
+  -p, --pagination      Enable pagination for long result lists (n=next,
+                        p=previous, 0=exit)
+  -f, --folder FOLDER [FOLDER ...]
+                        List items in the specified folder
+  -n, --name NAME [NAME ...]
+                        Search for items by name/title (multiple words = AND
+                        search)
+  -l, --list [LIST]     List all folders and sub-folders (supports % wildcard)
+  -a, --author AUTHOR [AUTHOR ...]
+                        Search for items by author name (multiple words = AND
+                        search)
+  -t, --tag TAG [TAG ...]
+                        Filter by tags (multiple tags = AND search, case-
+                        insensitive)
+  --shownotes           Show notes icon (📝) for items with notes in search
+                        results
+  --withnotes           Show only items that have notes attached
+  -k, --exact           Use exact search instead of partial matching
+  -o, --only-attachments
+                        Show only items with PDF or EPUB attachments
+  --after AFTER         Show items published after this year (inclusive)
+  --before BEFORE       Show items published before this year (inclusive)
+  --books               Show only book items in search results
+  --articles            Show only article items in search results
+  --no-dedupe           Disable automatic deduplication of results
+  --id ID               Show metadata for a specific item ID
+  --getbyid GETBYID [GETBYID ...]
+                        Grab attachments for specific item IDs
+  --getnotes GETNOTES   Copy notes for specific item ID to current directory
+  --showids             Show item ID numbers in search results
+  --showtags            Show tags for each item in search results
+  --stats               Show comprehensive database statistics
+  --export {csv,json}   Export search results to specified format (csv or
+                        json)
+  --file FILE           Specify output file path for export (defaults to
+                        current directory)
+  --showyear            Show publication year for each item in search results
+  --showauthor          Show first author name (first and last) for each item
+                        in search results
+  --showcreated         Show item creation date in search results
+  --showmodified        Show item modification date in search results
+  --showcollections     Show collections each item belongs to in search
+                        results
+  --sort {t,title,d,date,a,author,c,created,m,modified}
+                        Sort search results by: t/title, d/date, a/author,
+                        c/created, m/modified
+  --config              Launch interactive configuration wizard
