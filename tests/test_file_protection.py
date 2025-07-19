@@ -4,7 +4,7 @@ import os
 import tempfile
 from unittest.mock import patch
 
-from pdfsources.__main__ import get_safe_output_filename
+from pdfsources.discovery import get_safe_output_filename
 
 
 class TestFileOverwriteProtection:

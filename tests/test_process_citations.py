@@ -1,6 +1,7 @@
 import pytest
 import json
-from pdfsources.__main__ import format_chicago, format_apa, format_harvard, process_files, parse_citation
+from pdfsources.formatters import ChicagoFormatter, APAFormatter, HarvardFormatter
+from pdfsources.writers import BibliographyWriter, parse_citation
 
 
 @pytest.fixture
@@ -51,17 +52,17 @@ class TestCitationFormatters:
     """Tests for citation formatting functions."""
 
     @pytest.mark.parametrize("formatter,expected_book,expected_article", [
-        (format_chicago, 'Author, A. *Test Book Title That Is Long Enough*. (2025) Test City: Test Publisher, 2025.', 'Writer, B. "Test Article Title That Is Long Enough". (2024)'),
-        (format_apa, 'Author, A. (2025). Test Book Title That Is Long Enough Test City: Test Publisher.', 'Writer, B. (2024). Test Article Title That Is Long Enough'),
-        (format_harvard, 'Author, A. 2025, *Test Book Title That Is Long Enough*. Test City: Test Publisher.', 'Writer, B. 2024, *Test Article Title That Is Long Enough*.')
+        (ChicagoFormatter(), 'Author, A. *Test Book Title That Is Long Enough*. (2025) Test City: Test Publisher, 2025.', 'Writer, B. "Test Article Title That Is Long Enough". (2024)'),
+        (APAFormatter(), 'Author, A. (2025). Test Book Title That Is Long Enough Test City: Test Publisher.', 'Writer, B. (2024). Test Article Title That Is Long Enough'),
+        (HarvardFormatter(), 'Author, A. 2025, *Test Book Title That Is Long Enough*. Test City: Test Publisher.', 'Writer, B. 2024, *Test Article Title That Is Long Enough*.')
     ])
     def test_formatters_basic(self, sample_citations, formatter, expected_book, expected_article):
         """Test basic formatting for all citation styles."""
         book_citation = parse_citation(sample_citations[0])
         article_citation = parse_citation(sample_citations[1])
         
-        assert formatter(book_citation) == expected_book
-        assert formatter(article_citation) == expected_article
+        assert formatter.format(book_citation) == expected_book
+        assert formatter.format(article_citation) == expected_article
 
     def test_multiple_authors(self):
         """Test formatting with multiple authors."""
@@ -78,10 +79,10 @@ class TestCitationFormatters:
         }
         citation = parse_citation(citation_data)
         
-        chicago_result = format_chicago(citation)
+        chicago_result = ChicagoFormatter().format(citation)
         assert "Smith, John, Jones, Jane, and Johnson, Jack" in chicago_result
         
-        apa_result = format_apa(citation)
+        apa_result = APAFormatter().format(citation)
         assert "Smith, John, Jones, Jane, and Johnson, Jack" in apa_result
 
     def test_missing_fields(self):
@@ -94,11 +95,11 @@ class TestCitationFormatters:
         citation = parse_citation(minimal_citation)
         
         # Should still produce output despite missing fields
-        chicago_result = format_chicago(citation)
+        chicago_result = ChicagoFormatter().format(citation)
         assert "Minimal Citation Title That Is Long Enough" in chicago_result
         assert chicago_result != ""
         
-        apa_result = format_apa(citation)
+        apa_result = APAFormatter().format(citation)
         assert "Minimal Citation Title That Is Long Enough" in apa_result
         assert apa_result != ""
 
@@ -112,7 +113,7 @@ class TestCitationFormatters:
         }
         citation = parse_citation(no_author_citation)
         
-        chicago_result = format_chicago(citation)
+        chicago_result = ChicagoFormatter().format(citation)
         assert "Anonymous Work Title That Is Long Enough" in chicago_result
         
     def test_editors_instead_of_authors(self):
@@ -126,7 +127,7 @@ class TestCitationFormatters:
         }
         citation = parse_citation(editor_citation)
         
-        chicago_result = format_chicago(citation)
+        chicago_result = ChicagoFormatter().format(citation)
         assert "Editor, E., eds." in chicago_result
 
     def test_invalid_citation(self):
@@ -138,9 +139,9 @@ class TestCitationFormatters:
         citation = parse_citation(invalid_citation)
         
         # Should return empty string for invalid citations
-        assert format_chicago(citation) == ""
-        assert format_apa(citation) == ""
-        assert format_harvard(citation) == ""
+        assert ChicagoFormatter().format(citation) == ""
+        assert APAFormatter().format(citation) == ""
+        assert HarvardFormatter().format(citation) == ""
 
 
 class TestErrorHandling:
@@ -154,7 +155,8 @@ class TestErrorHandling:
         
         # Should handle JSON errors gracefully
         try:
-            process_files([str(corrupt_file)], str(tmp_path / "output.md"))
+            writer = BibliographyWriter(ChicagoFormatter())
+            writer.write_combined_bibliography(str(tmp_path / "output.md"), [str(corrupt_file)])
         except json.JSONDecodeError:
             # Expected to raise JSONDecodeError or handle gracefully
             pass
@@ -166,7 +168,8 @@ class TestErrorHandling:
             json.dump([], f)
         
         output_file = tmp_path / "output.md"
-        process_files([str(empty_file)], str(output_file))
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_combined_bibliography(str(output_file), [str(empty_file)])
         
         # Should create output file even with no citations
         assert output_file.exists()
@@ -180,7 +183,8 @@ class TestErrorHandling:
         
         # Should handle missing files gracefully
         try:
-            process_files([nonexistent_file], str(output_file))
+            writer = BibliographyWriter(ChicagoFormatter())
+            writer.write_combined_bibliography(str(output_file), [nonexistent_file])
         except (FileNotFoundError, IOError):
             # Expected to raise file error or handle gracefully
             pass
@@ -192,7 +196,8 @@ class TestErrorHandling:
         
         # Should handle invalid output path gracefully
         try:
-            process_files([json_file_1], invalid_output)
+            writer = BibliographyWriter(ChicagoFormatter())
+            writer.write_combined_bibliography(invalid_output, [json_file_1])
         except (FileNotFoundError, PermissionError, OSError):
             # Expected to raise appropriate error
             pass
@@ -211,7 +216,8 @@ class TestErrorHandling:
             json.dump(malformed_data, f)
         
         output_file = tmp_path / "output.md"
-        process_files([str(malformed_file)], str(output_file))
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_combined_bibliography(str(output_file), [str(malformed_file)])
         
         # Should create output file and filter out invalid citations
         assert output_file.exists()
@@ -219,15 +225,16 @@ class TestErrorHandling:
         assert "# Bibliography" in content
 
 
-class TestProcessFiles:
-    """Tests for the process_files function."""
+class TestBibliographyWriter:
+    """Tests for the BibliographyWriter class."""
 
-    def test_process_files_divided_output(self, temp_json_files, tmp_path):
-        """Test the process_files function for divided bibliography."""
+    def test_write_divided_bibliography(self, temp_json_files, tmp_path):
+        """Test the write_divided_bibliography method."""
         json_file_1, json_file_2 = temp_json_files
         output_file = tmp_path / "bibliography_divided.md"
         
-        process_files([json_file_1], str(output_file), output_type='divided')
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_divided_bibliography(str(output_file), [json_file_1])
         assert output_file.exists()
         
         content = output_file.read_text()
@@ -237,12 +244,13 @@ class TestProcessFiles:
         assert "* Author, A." in content
         assert "* Writer, B." in content
 
-    def test_process_files_combined_output(self, temp_json_files, tmp_path):
-        """Test the process_files function for combined bibliography."""
+    def test_write_combined_bibliography(self, temp_json_files, tmp_path):
+        """Test the write_combined_bibliography method."""
         json_file_1, json_file_2 = temp_json_files
         output_file = tmp_path / "bibliography_combined.md"
         
-        process_files([json_file_1], str(output_file), output_type='combined')
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_combined_bibliography(str(output_file), [json_file_1])
         assert output_file.exists()
         
         content = output_file.read_text()
@@ -250,12 +258,13 @@ class TestProcessFiles:
         assert "* Author, A." in content
         assert "* Writer, B." in content
 
-    def test_process_files_sources_output(self, temp_json_files, tmp_path):
-        """Test the process_files function for sources bibliography."""
+    def test_write_sources_bibliography(self, temp_json_files, tmp_path):
+        """Test the write_sources_bibliography method."""
         json_file_1, json_file_2 = temp_json_files
         output_file = tmp_path / "bibliography_sources.md"
         
-        process_files([json_file_1, json_file_2], str(output_file), output_type='sources')
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_sources_bibliography(str(output_file), [json_file_1, json_file_2])
         assert output_file.exists()
         
         content = output_file.read_text()
@@ -265,12 +274,13 @@ class TestProcessFiles:
         assert "* Author, A." in content
         assert "* Writer, B." in content
 
-    def test_process_files_sources_divided_output(self, temp_json_files, tmp_path):
-        """Test the process_files function for sources divided bibliography."""
+    def test_write_sources_divided_bibliography(self, temp_json_files, tmp_path):
+        """Test the write_sources_divided_bibliography method."""
         json_file_1, json_file_2 = temp_json_files
         output_file = tmp_path / "bibliography_sources_divided.md"
         
-        process_files([json_file_1], str(output_file), output_type='sources_divided')
+        writer = BibliographyWriter(ChicagoFormatter())
+        writer.write_sources_divided_bibliography(str(output_file), [json_file_1])
         assert output_file.exists()
         
         content = output_file.read_text()
