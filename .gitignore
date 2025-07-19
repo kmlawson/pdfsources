@@ -100,7 +100,10 @@ CONTRIBUTING.md
 TODO.md
 GEMINI.md
 KEYFILES.md
-info/llm-reports/
+CLAUDE.md
+DEVELOPMENT.md
+Makefile
+info/
 .claude
 
 # Temporary build artifacts
